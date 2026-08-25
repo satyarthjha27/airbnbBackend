@@ -30,3 +30,10 @@ stripe:
     key: "whsec_9a3779e3e3399b4f6a0d077b59c02fa1ace0405456eeae100536254985e27336"
 
 frontendUrl: "http://localhost:8080/"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
