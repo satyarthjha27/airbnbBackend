@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: airbnbBackend
+
+  # DB Configurations
+  datasource:
+    url: jdbc:postgresql://localhost:5432/airBnb
+    driver-class-name: org.postgresql.Driver
+    username: satyarthjha
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  servlet:
+    context-path: /api/v1
+    
+jwt:
+  secretKey: "5432323dfxrtersw3w4er6tyfgrew45retdftyg3wesdgtye564et56" # Fix 2: Added missing space after colon
+
+stripe:
+  secret:
+    key: "sk_test_51U7fKgCX3RfiARQvhVAaA0VN9mR48GPkKMJ8tYJ1dGyVRmldF3HgH5h8gkYyzef9VOU0JIQxC8iwwu3bZFoQPO1F00YQ9j7xym"
+  webhook:
+    key: "whsec_9a3779e3e3399b4f6a0d077b59c02fa1ace0405456eeae100536254985e27336"
+
+frontendUrl: "http://localhost:8080/"
