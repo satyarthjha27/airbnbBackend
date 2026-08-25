@@ -4,10 +4,10 @@ spring:
 
   # DB Configurations
   datasource:
-    url: jdbc:postgresql://pg-24900bff-satyarthjha007-2a9f.j.aivencloud.com:27906/defaultdb?sslmode=require
+    url: ${DB_URL}
     driver-class-name: org.postgresql.Driver
-    username: avnadmin
-    password: AVNS_ctfdLISUZ2DzE_GXonD
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -23,15 +23,15 @@ server:
     context-path: /api/v1
 
 jwt:
-  secretKey: "5432323dfxrtersw3w4er6tyfgrew45retdftyg3wesdgtye564et56" # Fix 2: Added missing space after colon
+  secretKey: ${JWT_SECRET_KEY}
 
 stripe:
   secret:
-    key: "sk_test_51U7fKgCX3RfiARQvhVAaA0VN9mR48GPkKMJ8tYJ1dGyVRmldF3HgH5h8gkYyzef9VOU0JIQxC8iwwu3bZFoQPO1F00YQ9j7xym"
+    key: ${STRIPE_SECRET_KEY}
   webhook:
-    key: "whsec_9a3779e3e3399b4f6a0d077b59c02fa1ace0405456eeae100536254985e27336"
+    key: ${STRIPE_WEBHOOK_SECRET}
 
-frontendUrl: "http://localhost:8080/"
+frontendUrl: ${FRONTEND_URL:http://localhost:8080/}
 
 springdoc:
   api-docs:
