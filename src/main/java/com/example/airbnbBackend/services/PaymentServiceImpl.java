@@ -72,5 +72,17 @@ public class PaymentServiceImpl implements PaymentService {
             throw new RuntimeException("Issue In Stripe Payemnt "+ e);
         }
     }
-}
 
+    @Override
+    public String getCheckoutUrl(String sessionId) {
+        try {
+            Session session = Session.retrieve(sessionId);
+            if (session.getUrl() == null) {
+                throw new IllegalStateException("The existing checkout session cannot be resumed.");
+            }
+            return session.getUrl();
+        } catch (StripeException exception) {
+            throw new RuntimeException("The existing checkout session cannot be resumed safely.", exception);
+        }
+    }
+}

@@ -5,4 +5,6 @@ import com.example.airbnbBackend.entity.Booking;
 public interface PaymentService {
 
     String checkoutPayemnt(Booking booking, String successUrl, String failureUrl);
+
+    String getCheckoutUrl(String sessionId);
 }

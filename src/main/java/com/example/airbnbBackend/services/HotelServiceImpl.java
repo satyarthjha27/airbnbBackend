@@ -9,6 +9,7 @@ import com.example.airbnbBackend.entity.User;
 import com.example.airbnbBackend.exception.ResourceNotFoundException;
 import com.example.airbnbBackend.exception.UnAuthorisedException;
 import com.example.airbnbBackend.repository.HotelRepository;
+import com.example.airbnbBackend.repository.HotelMinPriceRepository;
 import com.example.airbnbBackend.repository.RoomRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class HotelServiceImpl implements HotelService {
     private final InventoryService inventoryService;
     private final RoomService roomService;
     private final RoomRepository roomRepository;
+    private final HotelMinPriceRepository hotelMinPriceRepository;
 
     @Override
     public HotelDto createNewHotel(HotelDto hotelDto) {
@@ -54,6 +56,7 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel Not Found with id: " + id));
+        requireOwner(hotel);
         return modelMapper.map(hotel, HotelDto.class);
     }
 
@@ -63,9 +66,12 @@ public class HotelServiceImpl implements HotelService {
         Hotel existingHotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel Not Found with id: " + id));
+        requireOwner(existingHotel);
 
+        Boolean active = existingHotel.getActive();
         modelMapper.map(hotelDto, existingHotel);
         existingHotel.setId(id);
+        existingHotel.setActive(active);
         Hotel updatedHotel = hotelRepository.save(existingHotel);
         log.info("Successfully updated Hotel with id: {}", id);
         return modelMapper.map(updatedHotel, HotelDto.class);
@@ -78,11 +84,13 @@ public class HotelServiceImpl implements HotelService {
         Hotel existingHotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel Not Found with id: " + id));
+        requireOwner(existingHotel);
 
         for(Room room : existingHotel.getRooms()){
             inventoryService.deleteAllInventories(room);
             roomService.deleteRoomByID(room.getId());
         }
+        hotelMinPriceRepository.deleteByHotel(existingHotel);
         hotelRepository.deleteById(id);
     }
 
@@ -93,6 +101,10 @@ public class HotelServiceImpl implements HotelService {
         Hotel existingHotel = hotelRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel Not Found with id: " + id));
+        requireOwner(existingHotel);
+        if (Boolean.TRUE.equals(existingHotel.getActive())) {
+            return;
+        }
         existingHotel.setActive(true);
         hotelRepository.save(existingHotel);
         for(Room room : existingHotel.getRooms()){
@@ -105,6 +117,9 @@ public class HotelServiceImpl implements HotelService {
         Hotel existingHotel = hotelRepository
                 .findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel Not Found with id: " + hotelId));
+        if (!Boolean.TRUE.equals(existingHotel.getActive()) && !isCurrentOwner(existingHotel)) {
+            throw new ResourceNotFoundException("Hotel Not Found with id: " + hotelId);
+        }
         List<RoomDto> rooms = existingHotel.getRooms()
                 .stream()
                 .map((room)-> modelMapper.map(room,RoomDto.class))
@@ -125,6 +140,20 @@ public class HotelServiceImpl implements HotelService {
             .map((element) -> modelMapper.map(element, HotelDto.class))
                 .collect(Collectors.toList());
 
+    }
+
+    private void requireOwner(Hotel hotel) {
+        if (!isCurrentOwner(hotel)) {
+            throw new UnAuthorisedException("User Not allowed for this Operation.");
+        }
+    }
+
+    private boolean isCurrentOwner(Hotel hotel) {
+        if (SecurityContextHolder.getContext().getAuthentication() == null
+                || !(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User user)) {
+            return false;
+        }
+        return user.equals(hotel.getOwner());
     }
 
 

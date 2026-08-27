@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,16 +37,20 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto loginDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         String[] tokens = authService.login(loginDto);
 
-        Cookie cookie = new Cookie("refreshToken", tokens[1]);
-        cookie.setHttpOnly(true);
-
-        httpServletResponse.addCookie(cookie);
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", tokens[1])
+                .httpOnly(true)
+                .secure(httpServletRequest.isSecure())
+                .sameSite(httpServletRequest.isSecure() ? "None" : "Lax")
+                .path("/api/v1/auth")
+                .maxAge(30L * 24 * 60 * 60)
+                .build();
+        httpServletResponse.addHeader("Set-Cookie", refreshCookie.toString());
         return ResponseEntity.ok(new LoginResponseDto(tokens[0]));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponseDto> refresh(HttpServletRequest request) {
-        String refreshToken = Arrays.stream(request.getCookies()).
+        String refreshToken = Arrays.stream(request.getCookies() == null ? new jakarta.servlet.http.Cookie[0] : request.getCookies()).
                 filter(cookie -> "refreshToken".equals(cookie.getName()))
                 .findFirst()
                 .map(Cookie::getValue)

@@ -33,4 +33,6 @@ public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice, Lo
     );
 
     Optional<HotelMinPrice> findByHotelAndDate(Hotel hotel, LocalDate date);
+
+    void deleteByHotel(Hotel hotel);
 }

@@ -65,7 +65,15 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public Page<HotelPriceDto> searchHotels(HotelSearchRequest hotelSearchRequest) {
-        Pageable pageable = PageRequest.of(hotelSearchRequest.getPage(), hotelSearchRequest.getSize());
+        int page = Math.max(0, hotelSearchRequest.getPage() == null ? 0 : hotelSearchRequest.getPage());
+        int size = Math.min(50, Math.max(1, hotelSearchRequest.getSize() == null ? 10 : hotelSearchRequest.getSize()));
+        Pageable pageable = PageRequest.of(page, size);
+        if (hotelSearchRequest.getCity() == null || hotelSearchRequest.getCity().isBlank()
+                || hotelSearchRequest.getStartDate() == null || hotelSearchRequest.getEndDate() == null
+                || !hotelSearchRequest.getEndDate().isAfter(hotelSearchRequest.getStartDate())
+                || hotelSearchRequest.getRoomsCount() == null || hotelSearchRequest.getRoomsCount() < 1) {
+            return Page.empty(pageable);
+        }
         long dateCount = ChronoUnit.DAYS.between((hotelSearchRequest.getStartDate()), hotelSearchRequest.getEndDate()) +1;
 
 

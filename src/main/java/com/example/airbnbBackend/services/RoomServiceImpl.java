@@ -27,7 +27,7 @@ public class RoomServiceImpl implements RoomService{
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
     private final ModelMapper modelMapper;
-    private InventoryService inventoryService;
+    private final InventoryService inventoryService;
 
     @Override
     @Transactional
@@ -36,13 +36,10 @@ public class RoomServiceImpl implements RoomService{
         Hotel hotel = hotelRepository
                 .findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel Not Found with id: " + hotelId));
+        requireOwner(hotel);
 
         Room room = modelMapper.map(roomDto, Room.class);
         room.setHotel(hotel);
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(!user.equals(hotel.getOwner())){
-            throw new UnAuthorisedException("User Not allowed for this Operation.");
-        }
         roomRepository.save(room);
         log.info("Room created with id: {}", room.getId());
         if(hotel.getActive()){
@@ -58,6 +55,7 @@ public class RoomServiceImpl implements RoomService{
         Hotel hotel = hotelRepository
                 .findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel Not Found with id: " + hotelId));
+        requireOwner(hotel);
 
         return hotel.getRooms()
                 .stream()
@@ -71,6 +69,7 @@ public class RoomServiceImpl implements RoomService{
         Room room = roomRepository
                 .findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room Not Found with id: " + roomId));
+        requireOwner(room.getHotel());
         return modelMapper.map(room,RoomDto.class);
     }
 
@@ -80,8 +79,16 @@ public class RoomServiceImpl implements RoomService{
         Room room = roomRepository
                 .findById(roomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Room Not Found with id: " + roomId));
+        requireOwner(room.getHotel());
 
-//        inventoryService.deleteAllInventories(room);
+        inventoryService.deleteAllInventories(room);
         roomRepository.deleteById(roomId);
+    }
+
+    private void requireOwner(Hotel hotel) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!user.equals(hotel.getOwner())) {
+            throw new UnAuthorisedException("User Not allowed for this Operation.");
+        }
     }
 }

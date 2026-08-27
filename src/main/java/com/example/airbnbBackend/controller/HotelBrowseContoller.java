@@ -24,7 +24,7 @@ public class HotelBrowseContoller {
     private final HotelService hotelService;
 
     @GetMapping("/search")
-    public ResponseEntity<Page<HotelPriceDto>> searchHotels(@RequestBody HotelSearchRequest hotelSearchRequest) {
+    public ResponseEntity<Page<HotelPriceDto>> searchHotels(@ModelAttribute HotelSearchRequest hotelSearchRequest) {
 
         Page<HotelPriceDto> hotel = inventoryService.searchHotels(hotelSearchRequest);
         return ResponseEntity.ok(hotel);
