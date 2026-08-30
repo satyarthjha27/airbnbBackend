@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 @RequiredArgsConstructor
@@ -43,8 +44,9 @@ public class PaymentServiceImpl implements PaymentService {
                                                     .setCurrency("inr")
                                                     .setUnitAmount(
                                                             booking.getAmount()
-                                                                    .multiply(BigDecimal.valueOf(100))
-                                                                    .longValue()
+                                                                    .movePointRight(2)
+                                                                    .setScale(0, RoundingMode.HALF_UP)
+                                                                    .longValueExact()
                                                     )
                                                     .setProductData(
                                                             SessionCreateParams.LineItem.PriceData.ProductData.builder()
@@ -72,5 +74,28 @@ public class PaymentServiceImpl implements PaymentService {
             throw new RuntimeException("Issue In Stripe Payemnt "+ e);
         }
     }
-}
 
+    @Override
+    public String getCheckoutUrl(String sessionId) {
+        try {
+            Session session = Session.retrieve(sessionId);
+            if (session.getUrl() == null) {
+                throw new IllegalStateException("The existing checkout session cannot be resumed.");
+            }
+            return session.getUrl();
+        } catch (StripeException exception) {
+            throw new RuntimeException("The existing checkout session cannot be resumed safely.", exception);
+        }
+    }
+
+    @Override
+    public boolean isCheckoutPaid(String sessionId) {
+        try {
+            Session session = Session.retrieve(sessionId);
+            return "paid".equalsIgnoreCase(session.getPaymentStatus());
+        } catch (StripeException exception) {
+            log.warn("Unable to reconcile Stripe Checkout session {}", sessionId, exception);
+            return false;
+        }
+    }
+}

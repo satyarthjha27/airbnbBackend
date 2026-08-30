@@ -31,7 +31,7 @@ stripe:
   webhook:
     key: ${STRIPE_WEBHOOK_SECRET}
 
-frontendUrl: ${FRONTEND_URL:http://localhost:8080/}
+frontendUrl: ${FRONTEND_URL:http://localhost:3000/}
 
 springdoc:
   api-docs:

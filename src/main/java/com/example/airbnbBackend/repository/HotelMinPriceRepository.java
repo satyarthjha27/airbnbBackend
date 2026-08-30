@@ -18,10 +18,11 @@ public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice, Lo
     @Query("""
             SELECT new com.example.airbnbBackend.dto.HotelPriceDto(i.hotel, AVG(i.price))
             FROM HotelMinPrice i
-            where i.date BETWEEN :startDate AND :endDate
+            where i.date >= :startDate AND i.date < :endDate
                 AND i.hotel.active = true
                 AND i.hotel.city = :city
             GROUP BY i.hotel
+            HAVING COUNT(i.date) = :dateCount
             """)
     Page<HotelPriceDto> findHotelsWithAvailableInventory(
             @Param("city") String city,
@@ -33,4 +34,6 @@ public interface HotelMinPriceRepository extends JpaRepository<HotelMinPrice, Lo
     );
 
     Optional<HotelMinPrice> findByHotelAndDate(Hotel hotel, LocalDate date);
+
+    void deleteByHotel(Hotel hotel);
 }

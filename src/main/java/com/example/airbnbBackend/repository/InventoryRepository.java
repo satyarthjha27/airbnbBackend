@@ -24,7 +24,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     @Query("""
             SELECT DISTINCT i.hotel
             FROM Inventory i
-            where i.date BETWEEN :startDate AND :endDate
+            where i.date >= :startDate AND i.date < :endDate
                 AND i.closed = false
                 AND (i.totalCount - i.bookedCount - i.reservedCount) >= :roomsCount
             GROUP BY i.hotel,i.room
@@ -43,7 +43,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
             SELECT i
             FROM Inventory i
             WHERE i.room.id = :roomId
-                AND i.date BETWEEN :startDate AND :endDate
+                AND i.date >= :startDate AND i.date < :endDate
                 AND i.closed = false
                 AND (i.totalCount - i.bookedCount - i.reservedCount) >= :roomsCount
             """)
@@ -56,10 +56,25 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     );
 
     @Query("""
+            SELECT i
+            FROM Inventory i
+            WHERE i.room.id = :roomId
+                AND i.date >= :startDate AND i.date < :endDate
+                AND i.closed = false
+                AND (i.totalCount - i.bookedCount - i.reservedCount) >= :roomsCount
+            """)
+    List<Inventory> findAvailableInventory(
+            @Param("roomId") Long roomId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("roomsCount") Integer roomsCount
+    );
+
+    @Query("""
                 SELECT i
                 FROM Inventory i
                 WHERE i.room.id = :roomId
-                  AND i.date BETWEEN :startDate AND :endDate
+                  AND i.date >= :startDate AND i.date < :endDate
                   AND (i.totalCount - i.bookedCount) >= :numberOfRooms
                   AND i.closed = false
             """)
@@ -75,27 +90,41 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
                 SET i.reservedCount = i.reservedCount - :numberOfRooms,
                     i.bookedCount = i.bookedCount + :numberOfRooms
                 WHERE i.room.id = :roomId
-                  AND i.date BETWEEN :startDate AND :endDate
+                  AND i.date >= :startDate AND i.date < :endDate
                   AND (i.totalCount - i.bookedCount) >= :numberOfRooms
                   AND i.reservedCount >= :numberOfRooms
                   AND i.closed = false
             """)
-    void confirmBooking(@Param("roomId") Long roomId,
-                        @Param("startDate") LocalDate startDate,
-                        @Param("endDate") LocalDate endDate,
-                        @Param("numberOfRooms") int numberOfRooms);
+    int confirmBooking(@Param("roomId") Long roomId,
+                       @Param("startDate") LocalDate startDate,
+                       @Param("endDate") LocalDate endDate,
+                       @Param("numberOfRooms") int numberOfRooms);
+
+    @Modifying
+    @Query("""
+                UPDATE Inventory i
+                SET i.reservedCount = i.reservedCount - :numberOfRooms
+                WHERE i.room.id = :roomId
+                  AND i.date >= :startDate AND i.date < :endDate
+                  AND i.reservedCount >= :numberOfRooms
+                  AND i.closed = false
+            """)
+    void releaseReservation(@Param("roomId") Long roomId,
+                            @Param("startDate") LocalDate startDate,
+                            @Param("endDate") LocalDate endDate,
+                            @Param("numberOfRooms") int numberOfRooms);
 
     @Modifying
     @Query("""
                 UPDATE Inventory i
                 SET i.bookedCount = i.bookedCount - :numberOfRooms
                 WHERE i.room.id = :roomId
-                  AND i.date BETWEEN :startDate AND :endDate
-                  AND (i.totalCount - i.bookedCount) >= :numberOfRooms
+                  AND i.date >= :startDate AND i.date < :endDate
+                  AND i.bookedCount >= :numberOfRooms
                   AND i.closed = false
             """)
-    void cancelBooking(@Param("roomId") Long roomId,
-                        @Param("startDate") LocalDate startDate,
-                        @Param("endDate") LocalDate endDate,
-                        @Param("numberOfRooms") int numberOfRooms);
+    void releaseConfirmedBooking(@Param("roomId") Long roomId,
+                                 @Param("startDate") LocalDate startDate,
+                                 @Param("endDate") LocalDate endDate,
+                                 @Param("numberOfRooms") int numberOfRooms);
 }

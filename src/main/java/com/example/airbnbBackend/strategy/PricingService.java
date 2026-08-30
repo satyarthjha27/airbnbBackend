@@ -16,8 +16,6 @@ public class PricingService {
         pricingStrategy = new SurgePriceStrategy(pricingStrategy);
         pricingStrategy = new OccupancyStrategy(pricingStrategy);
         pricingStrategy = new UrgencyPricingStrategy(pricingStrategy);
-        pricingStrategy = new HolidayPricingStrategy(pricingStrategy);
-
         return pricingStrategy.calculatePrice(inventory);
     }
 
