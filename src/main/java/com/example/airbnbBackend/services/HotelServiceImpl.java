@@ -15,6 +15,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -126,6 +129,15 @@ public class HotelServiceImpl implements HotelService {
                 .toList();
 
         return new HotelInfoDto(modelMapper.map(existingHotel,HotelDto.class),rooms);
+    }
+
+    @Override
+    public Page<HotelDto> getActiveHotels(Integer page, Integer size) {
+        int safePage = Math.max(0, page == null ? 0 : page);
+        int safeSize = Math.min(50, Math.max(1, size == null ? 10 : size));
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        return hotelRepository.findByActiveTrue(pageable)
+                .map(hotel -> modelMapper.map(hotel, HotelDto.class));
     }
 
     @Override

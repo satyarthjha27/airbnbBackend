@@ -2,8 +2,7 @@ package com.example.airbnbBackend.services;
 
 import com.example.airbnbBackend.dto.HotelDto;
 import com.example.airbnbBackend.dto.HotelInfoDto;
-import com.example.airbnbBackend.entity.Hotel;
-import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -21,6 +20,8 @@ public interface HotelService {
 
 
     HotelInfoDto getHotelInfo(Long hotelId);
+
+    Page<HotelDto> getActiveHotels(Integer page, Integer size);
 
     List<HotelDto> getAllHotels();
 }

@@ -1,6 +1,5 @@
 package com.example.airbnbBackend.dto;
 
-import com.example.airbnbBackend.entity.Hotel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class HotelPriceDto {
 
-    private Hotel hotel;
+    private HotelDto hotel;
     private Double price;
 }

@@ -1,5 +1,6 @@
 package com.example.airbnbBackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.example.airbnbBackend.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,7 @@ public class User implements UserDetails {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     private String name;

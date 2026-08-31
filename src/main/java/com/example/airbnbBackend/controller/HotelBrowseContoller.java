@@ -36,6 +36,13 @@ public class HotelBrowseContoller {
         return ResponseEntity.ok(hotel);
     }
 
+    @GetMapping
+    public ResponseEntity<Page<HotelDto>> browseHotels(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        return ResponseEntity.ok(hotelService.getActiveHotels(page, size));
+    }
+
     @GetMapping("/{hotelId}/info")
     public ResponseEntity<HotelInfoDto> getHotelInfo(@PathVariable Long hotelId){
         return ResponseEntity.ok(hotelService.getHotelInfo(hotelId));

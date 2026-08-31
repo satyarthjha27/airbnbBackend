@@ -2,6 +2,7 @@ package com.example.airbnbBackend.services;
 
 import com.example.airbnbBackend.dto.HotelDto;
 import com.example.airbnbBackend.dto.HotelPriceDto;
+import com.example.airbnbBackend.dto.HotelPriceProjection;
 import com.example.airbnbBackend.dto.HotelSearchRequest;
 import com.example.airbnbBackend.entity.Hotel;
 import com.example.airbnbBackend.entity.Inventory;
@@ -77,11 +78,20 @@ public class InventoryServiceImpl implements InventoryService {
         long dateCount = ChronoUnit.DAYS.between(hotelSearchRequest.getStartDate(), hotelSearchRequest.getEndDate());
 
 
-        Page<HotelPriceDto> hotel1= hotelMinPriceRepository.findHotelsWithAvailableInventory(hotelSearchRequest.getCity(),hotelSearchRequest.getStartDate(),hotelSearchRequest.getEndDate(),
-                hotelSearchRequest.getRoomsCount(),dateCount, pageable);
+        String normalizedCity = hotelSearchRequest.getCity().trim();
+        Page<HotelPriceProjection> results = hotelMinPriceRepository.findHotelsWithAvailableInventory(
+                normalizedCity,
+                hotelSearchRequest.getStartDate(),
+                hotelSearchRequest.getEndDate(),
+                hotelSearchRequest.getRoomsCount(),
+                dateCount,
+                pageable
+        );
 
-        //return hotel1.map((element) -> modelMapper.map(element,HotelDto.class));
-        return hotel1;
+        return results.map(result -> new HotelPriceDto(
+                modelMapper.map(result.getHotel(), HotelDto.class),
+                result.getPrice()
+        ));
     }
 
 

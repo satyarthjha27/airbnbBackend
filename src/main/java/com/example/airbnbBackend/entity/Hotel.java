@@ -44,6 +44,7 @@ public class Hotel {
     private Boolean active;
 
     @ManyToOne(optional = false)
+    @JsonIgnore
     private User owner;
 
     @OneToMany(mappedBy = "hotel")
