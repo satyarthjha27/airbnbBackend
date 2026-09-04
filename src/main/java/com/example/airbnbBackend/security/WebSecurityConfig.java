@@ -47,10 +47,13 @@ public class WebSecurityConfig {
 
         httpSecurity
                 .csrf(csrfConfig -> csrfConfig.disable())
-                .cors(corsConfig -> {})
+                // FIX: Pass your custom configuration source here
+                .cors(corsConfig -> corsConfig.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        // FIX: Explicitly allow all preflight OPTIONS requests
+                        // .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("HOTEL_MANAGER")
                         .requestMatchers("/bookings/**").authenticated()
                         .anyRequest().permitAll()
@@ -59,6 +62,7 @@ public class WebSecurityConfig {
 
         return httpSecurity.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
